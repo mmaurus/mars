@@ -629,6 +629,9 @@ namespace mars {
 
     void SMURF::handleKinematics(boost::shared_ptr<urdf::Link> link) {
       ConfigMap config;
+      config["groupid"] = nextGroupID++;
+
+
       // holds the index of the next visual object to load
       size_t visualArrayIndex = 0;
       // holds the index of the next collision object to load
@@ -651,9 +654,9 @@ namespace mars {
 
       config["movable"] = true;
 
+      bool needGroupID = true;
       // we do most of the special case handling here:
       { /** special case handling **/
-        bool needGroupID = false;
         if (link->visual_array.size() > 1 || link->collision_array.size() > 1) {
           needGroupID = true;
         }
@@ -676,12 +679,6 @@ namespace mars {
               }
             }
           }
-        }
-        if (needGroupID) {
-          // we need to group mars nodes
-          config["groupid"] = nextGroupID++;
-        } else {
-          config["groupid"] = 0;
         }
       }
 
@@ -860,6 +857,37 @@ namespace mars {
         debugMap["joints"] += joint;
         jointList.push_back(joint);
       }
+
+      //add origin of link as separate node
+      ConfigMap oc; // originconfig
+      oc["name"] = "origin_" + link->name;
+      oc["index"] = 1000 + nextNodeID++;
+      nodeIDMap["origin_" + link->name] = 1000 + nextNodeID - 1;
+      oc["groupid"] = config["groupid"];
+      Vector ocsize(0.01, 0.01, 0.01);
+      Vector ocscale(1.0, 1.0, 1.0);
+      oc["filename"] = "PRIMITIVE";
+      oc["origname"] = "box";
+      oc["physicmode"] = "box";
+      oc["materialName"] = "_fakeMaterial";
+      oc["movable"] = true;
+      oc["coll_bitmask"] = 0;
+      oc["mass"] = 0.001;
+      vectorToConfigItem(&oc["visualsize"][0], &ocsize);
+      vectorToConfigItem(&oc["visualscale"][0], &ocscale);
+      oc["relativeid"] = config["index"];
+      // derive position
+      urdf::Pose ocpose;
+      ocpose.position = urdf::Vector3(0.0, 0.0, 0.0);
+      ocpose.rotation = urdf::Rotation(0.0, 0.0, 0.0, 1.0);
+      Vector ocv;
+      Quaternion ocq;
+      convertPose(ocpose, link, &v, &q);
+      vectorToConfigItem(&oc["position"][0], &ocv);
+      quaternionToConfigItem(&oc["rotation"][0], &ocq);
+
+      debugMap["links"] += oc;
+      nodeList.push_back(oc);
 
       for (std::vector<boost::shared_ptr<urdf::Link> >::iterator it = link->child_links.begin();
           it != link->child_links.end(); ++it) {
