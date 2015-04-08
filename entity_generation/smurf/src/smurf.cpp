@@ -873,6 +873,7 @@ namespace mars {
       oc["movable"] = true;
       oc["coll_bitmask"] = 0;
       oc["mass"] = 0.001;
+      vectorToConfigItem(&oc["extend"][0], &ocsize);
       vectorToConfigItem(&oc["visualsize"][0], &ocsize);
       vectorToConfigItem(&oc["visualscale"][0], &ocscale);
       oc["relativeid"] = config["index"];
