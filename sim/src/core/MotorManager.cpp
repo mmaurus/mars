@@ -22,8 +22,8 @@
  * \file MotorManager.cpp
  * \author  Vladimir Komsiyski
  * \brief "MotorManager" implements MotorManagerInterface.
- * It is manages all motors and all motor 
- * operations that are used for the communication between the simulation 
+ * It is manages all motors and all motor
+ * operations that are used for the communication between the simulation
  * modules.
  *
  * \version 1.3
@@ -44,7 +44,7 @@
 
 namespace mars {
   namespace sim {
-  
+
     using namespace std;
     using namespace utils;
     using namespace interfaces;
@@ -53,7 +53,7 @@ namespace mars {
      * \brief Constructor.
      *
      * \param c The pointer to the ControlCenter of the simulation.
-     */ 
+     */
     MotorManager::MotorManager(ControlCenter *c)
     {
       control = c;
@@ -64,7 +64,7 @@ namespace mars {
     /**
      * \brief Add a motor to the simulation.
      *
-     * \param motorS A pointer to the MotorData that defines the new motor.
+     * \param motordata A pointer to the MotorData that defines the new motor.
      *
      * \param reload Used internally by the simulation. The
      * default value is \c false. If this param is set to \c true the new motor
@@ -72,60 +72,60 @@ namespace mars {
      *
      * \return The unique id of the newly added motor.
      */
-    unsigned long MotorManager::addMotor(MotorData *motorS, bool reload) 
-    {  
+    unsigned long MotorManager::addMotor(MotorData *motordata, bool reload)
+    {
       iMutex.lock();
-      motorS->index = next_motor_id;
+      motordata->index = next_motor_id;
       next_motor_id++;
       iMutex.unlock();
-  
+
       if (!reload) {
         iMutex.lock();
-        simMotorsReload.push_back(*motorS);
+        reloadList.push_back(*motordata);
         iMutex.unlock();
       }
-  
-      SimMotor* newMotor = new SimMotor(control, *motorS);
-      newMotor->attachJoint(control->joints->getSimJoint(motorS->jointIndex));
-  
-      if(motorS->jointIndex2)
-        newMotor->attachPlayJoint(control->joints->getSimJoint(motorS->jointIndex2));
-  
-      newMotor->setSMotor(*motorS);
+
+      SimMotor* newMotor = new SimMotor(control, *motordata);
+      newMotor->attachJoint(control->joints->getSimJoint(motordata->jointIndex));
+
+      if(motordata->jointIndex2)
+        newMotor->attachPlayJoint(control->joints->getSimJoint(motordata->jointIndex2));
+
+      newMotor->setSMotor(*motordata);
       iMutex.lock();
-      simMotors[newMotor->getIndex()] = newMotor;
+      motors[newMotor->getIndex()] = newMotor;
       iMutex.unlock();
       control->sim->sceneHasChanged(false);
-      return motorS->index;
+      return motordata->index;
     }
 
 
     /**
      *\brief Returns the number of motors that are currently present in the simulation.
-     * 
+     *
      *\return The number of all motors.
      */
     int MotorManager::getMotorCount() const {
       MutexLocker locker(&iMutex);
-      return simMotors.size();
+      return motors.size();
     }
 
 
     /**
      * \brief Change motor properties.
      *
-     * \details The old struct is replaced 
-     * by the new one completely, so prior to calling this function, one must 
+     * \details The old struct is replaced
+     * by the new one completely, so prior to calling this function, one must
      * ensure that all properties of this parameter are valid and as desired.
      *
-     * \param motorS The id of the MotorData referred by this pointer must be the
-     * same as the id of the motor that is to be edited. 
+     * \param motordata The id of the MotorData referred by this pointer must be the
+     * same as the id of the motor that is to be edited.
      */
-    void MotorManager::editMotor(const MotorData &motorS) {
+    void MotorManager::editMotor(const MotorData &motordata) {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(motorS.index);
-      if (iter != simMotors.end())
-        iter->second->setSMotor(motorS);
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(motordata.index);
+      if (iter != motors.end())
+        iter->second->setSMotor(motordata);
     }
 
 
@@ -136,16 +136,20 @@ namespace mars {
      * core_objects_exchange struct for every motor and its index. The vector is cleared
      * in the beginning of this function.
      */
-    void MotorManager::getListMotors(vector<core_objects_exchange> *motorList)const{
+    void MotorManager::retrieveMotorList(vector<core_objects_exchange> *motorList) const {
       core_objects_exchange obj;
       map<unsigned long, SimMotor*>::const_iterator iter;
       motorList->clear();
       iMutex.lock();
-      for (iter = simMotors.begin(); iter != simMotors.end(); iter++) {
+      for (iter = motors.begin(); iter != motors.end(); iter++) {
         iter->second->getCoreExchange(&obj);
         motorList->push_back(obj);
       }
       iMutex.unlock();
+    }
+
+    void MotorManager::getListMotors(vector<core_objects_exchange> *motorList) const { // deprecated
+      retrieveMotorList(motorList);
     }
 
 
@@ -157,16 +161,21 @@ namespace mars {
      * \return A pointer to the MotorData of the motor with the given id.
      * \throw std::runtime_error if a motor with the given index does not exist.
      */
-    const MotorData MotorManager::getFullMotor(unsigned long index) const {
+    const MotorData MotorManager::getMotorData(unsigned long index) const {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::const_iterator iter = simMotors.find(index);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::const_iterator iter = motors.find(index);
+      if (iter != motors.end())
         return iter->second->getSMotor();
       else {
         char msg[128];
         sprintf(msg, "could not find motor with index: %lu", index);
         throw std::runtime_error(msg);
+        return 0;
       }
+    }
+
+    const MotorData MotorManager::getFullMotor(unsigned long index) const { // deprecated
+        return getMotorData(index);
     }
 
 
@@ -178,15 +187,15 @@ namespace mars {
     void MotorManager::removeMotor(unsigned long index) {
       SimMotor* tmpMotor = NULL;
       iMutex.lock();
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(index);
-      if (iter != simMotors.end()) {
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(index);
+      if (iter != motors.end()) {
         tmpMotor = iter->second;
-        simMotors.erase(iter);
+        motors.erase(iter);
         if (tmpMotor)
           delete tmpMotor;
       }
       iMutex.unlock();
-  
+
       control->sim->sceneHasChanged(false);
     }
 
@@ -205,8 +214,8 @@ namespace mars {
      */
     SimMotor* MotorManager::getSimMotor(unsigned long id) const {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::const_iterator iter = simMotors.find(id);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::const_iterator iter = motors.find(id);
+      if (iter != motors.end())
         return iter->second;
       else
         return NULL;
@@ -229,7 +238,7 @@ namespace mars {
     SimMotor* MotorManager::getSimMotorByName(const std::string &name) const {
       MutexLocker locker(&iMutex);
       std::map<unsigned long, SimMotor*>::const_iterator iter;
-      for (iter = simMotors.begin(); iter != simMotors.end(); iter++)
+      for (iter = motors.begin(); iter != motors.end(); iter++)
         if (iter->second->getName() == name)
           return iter->second;
       return NULL;
@@ -249,16 +258,20 @@ namespace mars {
      */
     void MotorManager::setMotorValue(unsigned long id, sReal value) {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(id);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(id);
+      if (iter != motors.end())
         iter->second->setValue(value);
     }
 
-
+    /**
+     * \brief Sets the desired speed of a motor.
+     * \param id The id of the motor whose value is to be changed.
+     * \param value The new value in rad/s.
+     */
     void MotorManager::setMotorValueDesiredVelocity(unsigned long id, sReal velocity) {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(id);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(id);
+      if (iter != motors.end())
         iter->second->setValueDesiredVelocity(velocity);
     }
 
@@ -268,7 +281,7 @@ namespace mars {
      * \brief Sets the proportional term of the motor with the given id to the given value.
      *
      * \details Only has effect on a PID motor. If the type of the motor with
-     * the given id is different from PID, no effect is observed, although the 
+     * the given id is different from PID, no effect is observed, although the
      * P value of the motor object is still changed.
      *
      * \param id The id of the motor whose P value is to be changed.
@@ -277,8 +290,8 @@ namespace mars {
      */
     void MotorManager::setMotorP(unsigned long id, sReal value) {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(id);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(id);
+      if (iter != motors.end())
         iter->second->setP(value);
     }
 
@@ -287,7 +300,7 @@ namespace mars {
      * \brief Sets the integral term of the motor with the given id to the given value.
      *
      * \details Only has effect on a PID motor. If the type of the motor with
-     * the given id is different from PID, no effect is observed, although the 
+     * the given id is different from PID, no effect is observed, although the
      * I value of the motor object is still changed.
      *
      * \param id The id of the motor whose I value is to be changed.
@@ -296,8 +309,8 @@ namespace mars {
      */
     void MotorManager::setMotorI(unsigned long id, sReal value) {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(id);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(id);
+      if (iter != motors.end())
         iter->second->setI(value);
     }
 
@@ -306,7 +319,7 @@ namespace mars {
      * \brief Sets the derivative term of the motor with the given id to the given value.
      *
      * \details Only has effect on a PID motor. If the type of the motor with
-     * the given id is different from PID, no effect is observed, although the 
+     * the given id is different from PID, no effect is observed, although the
      * D value of the motor object is still changed.
      *
      * \param id The id of the motor whose D value is to be changed.
@@ -315,21 +328,21 @@ namespace mars {
      */
     void MotorManager::setMotorD(unsigned long id, sReal value) {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(id);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(id);
+      if (iter != motors.end())
         iter->second->setD(value);
     }
 
 
-    /** 
+    /**
      * \brief Deactivates the motor with the given id.
      *
      * \param id The id of the motor that is to be deactivated.
      */
     void MotorManager::deactivateMotor(unsigned long id) {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(id);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(id);
+      if (iter != motors.end())
         iter->second->deactivate();
     }
 
@@ -345,7 +358,7 @@ namespace mars {
       map<unsigned long, SimMotor*>::const_iterator iter;
       MutexLocker locker(&iMutex);
 
-      for (iter = simMotors.begin(); iter != simMotors.end(); iter++) {
+      for (iter = motors.begin(); iter != motors.end(); iter++) {
         if (iter->second->getName() == name)
           return iter->first;
       }
@@ -366,13 +379,13 @@ namespace mars {
      */
     void MotorManager::moveMotor(unsigned long index, double value) {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::iterator iter = simMotors.find(index);
-      if (iter != simMotors.end())
+      map<unsigned long, SimMotor*>::iterator iter = motors.find(index);
+      if (iter != motors.end())
         iter->second->setValue(value);
     }
 
 
-    /** 
+    /**
      * \brief Destroys all motors in the simulation.
      *
      * \details The \c clear_all flag indicates if the reload motors should
@@ -381,14 +394,18 @@ namespace mars {
      * \param clear_all Indicates if the reload motors should
      * be destroyed as well. If set to \c false they are left intact.
      */
-    void MotorManager::clearAllMotors(bool clear_all) {
+    void MotorManager::clearMotors(bool clear_all) {
       MutexLocker locker(&iMutex);
       map<unsigned long, SimMotor*>::iterator iter;
-      for(iter = simMotors.begin(); iter != simMotors.end(); iter++) 
+      for(iter = motors.begin(); iter != motors.end(); iter++)
         delete iter->second;
-      simMotors.clear();
-      if(clear_all) simMotorsReload.clear();
+      motors.clear();
+      if(clear_all) reloadList.clear();
       next_motor_id = 1;
+    }
+
+    void MotorManager::clearAllMotors(bool clear_all) { // deprecated
+      clearMotors(clear_all);
     }
 
 
@@ -396,12 +413,12 @@ namespace mars {
      * \brief This function reloads all motors from a temporary motor pool.
      *
      * \details All motors that have been added with \c reload value as \c true
-     * are added back to the simulation again with a \c reload value of \c true. 
+     * are added back to the simulation again with a \c reload value of \c true.
      */
     void MotorManager::reloadMotors(void) {
       list<MotorData>::iterator iter;
       iMutex.lock();
-      for(iter = simMotorsReload.begin(); iter != simMotorsReload.end(); iter++) {
+      for(iter = reloadList.begin(); iter != reloadList.end(); iter++) {
         iMutex.unlock();
         addMotor(&(*iter), true);
         iMutex.lock();
@@ -412,60 +429,90 @@ namespace mars {
     /**
      * \brief This function updates all motors with timing value \c calc_ms in miliseconds.
      *
-     * \warning This function is only used internally and should not be called 
+     * \warning This function is only used internally and should not be called
      * outside the core.
      *
-     * \param calc_ms The timing value in miliseconds. 
+     * \param calc_ms The timing value in miliseconds.
      */
     void MotorManager::updateMotors(double calc_ms) {
       map<unsigned long, SimMotor*>::iterator iter;
       MutexLocker locker(&iMutex);
-      for(iter = simMotors.begin(); iter != simMotors.end(); iter++)
+      for(iter = motors.begin(); iter != motors.end(); iter++)
         iter->second->update(calc_ms);
     }
 
-
-    sReal MotorManager::getActualPosition(unsigned long motorId) const {
+    /**
+     * \returns the actual position of the motor with the given Id.
+     *          returns 0 if a motor with the given Id doesn't exist.
+     */
+    sReal MotorManager::getMotorPosition(unsigned long motorId) const {
       MutexLocker locker(&iMutex);
       map<unsigned long, SimMotor*>::const_iterator iter;
-      iter = simMotors.find(motorId);
-      if (iter != simMotors.end())
+      iter = motors.find(motorId);
+      if (iter != motors.end())
         return iter->second->getPosition();
       return 0.;
     }
 
-    sReal MotorManager::getTorque(unsigned long motorId) const {
+    sReal MotorManager::getActualPosition(unsigned long motorId) const { // deprecated
+      return getMotorPosition(motorId);
+    }
+
+    /**
+     * \returns the torque excerted by the motor with the given Id.
+     *          returns 0 if a motor with the given Id doesn't exist.
+     */
+    sReal MotorManager::getMotorEffort(unsigned long motorId) const {
       MutexLocker locker(&iMutex);
       map<unsigned long, SimMotor*>::const_iterator iter;
-      iter = simMotors.find(motorId);
-      if (iter != simMotors.end())
+      iter = motors.find(motorId);
+      if (iter != motors.end())
         return iter->second->getEffort();
-      return 0.;
+      return 0.0;
     }
 
-    void MotorManager::setMaxTorque(unsigned long id, sReal maxTorque) {
-      MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::const_iterator iter;
-      iter = simMotors.find(id);
-      if (iter != simMotors.end())
-        iter->second->setMaxEffort(maxTorque);
+    sReal MotorManager::getMotorEffort(unsigned long motorId) const { // deprecated
+        return getMotorEffort(motorId);
     }
 
-    void MotorManager::setMaxSpeed(unsigned long id, sReal maxSpeed) {
+    /**
+     * \brief Sets the maximum torque of the motor with the given id to the given value.
+     *
+     * \param id The id of the motor whose value is to be changed.
+     *
+     * \param maxTorque The new maximum torque for the motor.
+     */
+    void MotorManager::setMotorMaxEffort(unsigned long id, sReal maxEffort) {
       MutexLocker locker(&iMutex);
       map<unsigned long, SimMotor*>::const_iterator iter;
-      iter = simMotors.find(id);
-      if (iter != simMotors.end())
+      iter = motors.find(id);
+      if (iter != motors.end())
+        iter->second->setMaxEffort(maxEffort);
+    }
+
+    void MotorManager::setMaxTorque(unsigned long id, sReal maxTorque) { //deprecated
+      setMotorMaxEffort(id, maxTorque);
+    }
+
+    void MotorManager::setMotorMaxSpeed(unsigned long id, sReal maxSpeed) {
+      MutexLocker locker(&iMutex);
+      map<unsigned long, SimMotor*>::const_iterator iter;
+      iter = motors.find(id);
+      if (iter != motors.end())
         iter->second->setMaxSpeed(maxSpeed);
+    }
+
+    void MotorManager::setMaxSpeed(unsigned long id, sReal maxSpeed) { // deprecated
+        setMotorMaxSpeed(id, maxSpeed);
     }
 
 
     /**
      * \brief Detaches the joint with the given index from all motors that act on
      * it, if any. Used when a joint is destroyed.
-     * 
-     * \warning The detached motors are not destroyed and are still present in the 
-     * simulation, although they do not have any effect on it. A call to 
+     *
+     * \warning The detached motors are not destroyed and are still present in the
+     * simulation, although they do not have any effect on it. A call to
      * \c removeMotor must be made to remove the motor completely.
      *
      * \param joint_index The id of the joint that is to be detached.
@@ -473,17 +520,17 @@ namespace mars {
     void MotorManager::removeJointFromMotors(unsigned long joint_index) {
       map<unsigned long, SimMotor*>::iterator iter;
       MutexLocker locker(&iMutex);
-      for (iter = simMotors.begin(); iter != simMotors.end(); iter++) 
-        if (iter->second->getJointIndex() == joint_index) 
+      for (iter = motors.begin(); iter != motors.end(); iter++)
+        if (iter->second->getJointIndex() == joint_index)
           iter->second->attachJoint(0);
     }
 
-    void MotorManager::getDataBrokerNames(unsigned long jointId, 
-                                          std::string *groupName, 
+    void MotorManager::getDataBrokerNames(unsigned long jointId,
+                                          std::string *groupName,
                                           std::string *dataName) const {
       MutexLocker locker(&iMutex);
-      map<unsigned long, SimMotor*>::const_iterator iter = simMotors.find(jointId);
-      if(iter != simMotors.end())
+      map<unsigned long, SimMotor*>::const_iterator iter = motors.find(jointId);
+      if(iter != motors.end())
         iter->second->getDataBrokerNames(groupName, dataName);
     }
 
