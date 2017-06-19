@@ -1,0 +1,27 @@
+varyings:
+  vec3:
+    - {name: eyeVec}
+    - {name: normal}
+  vec3[]:
+    - {name: lightDir, arraySize: numLights}
+  float[]:
+    - {name: atten, arraySize: numLights}
+uniforms:
+  vec3[]:
+    - {name: lightPos, arraySize: numLights}
+  int:
+    - {name: numLights}
+  float[]:
+    - {name: lightConstantAtt, arraySize: numLights}
+    - {name: lightLinearAtt, arraySize: numLights}
+    - {name: lightQuadraticAtt, arraySize: numLights}
+  int[]:
+    - {name: lightIsDirectional, arraySize: numLights}
+    - {name: lightIsSet, arraySize: numLights}
+  mat4:
+    - {name: osg_ViewMatrixInverse}
+exports:
+  - {name: "gl_Position", value: "ftransform()"}
+source: /shader/defaultPhong.vert
+name: defaultPhong
+priority: 0

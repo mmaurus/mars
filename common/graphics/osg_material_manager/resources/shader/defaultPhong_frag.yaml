@@ -1,0 +1,47 @@
+params:
+  - ambient_base
+  - diffuse_base
+  - specular_base
+  - Ia
+  - Id
+  - Is
+varyings:
+  vec3:
+    - {name: normal}
+    - {name: eyeVec}
+  vec3[]:
+    - {name: lightDir, arraySize: numLights}
+  float[]:
+      - {name: atten, arraySize: numLights}
+uniforms:
+  int:
+    - {name: numLights}
+  vec3[]:
+    - {name: lightSpotDir, arraySize: numLights}
+  vec4[]:
+    - {name: lightAmbient, arraySize: numLights}
+    - {name: lightDiffuse, arraySize: numLights}
+    - {name: lightSpecular, arraySize: numLights}
+  int[]:
+    - {name: lightIsSpot, arraySize: numLights}
+    - {name: lightIsSet, arraySize: numLights}
+    - {name: lightIsDirectional, arraySize: numLights}
+  float[]:
+    - {name: lightCosCutoff, arraySize: numLights}
+    - {name: lightSpotExponent, arraySize: numLights}
+mainVarDecs:
+  vec4:
+    - {name: "ambient_base", value: "vec4(0.0)", priority: 0}
+    - {name: "diffuse_base", value: "vec4(0.0)", priority: 0}
+    - {name: "specular_base", value: "vec4(0.0)", priority: 0}
+mainVars:
+  vec4:
+    - {name: "Ia", value: "vec4(0.0)", priority: 0}
+    - {name: "Id", value: "vec4(0.0)", priority: 0}
+    - {name: "Is", value: "vec4(0.0)", priority: 0}
+    - {name: "If", value: "Ia+Id+Is", priority: 999}
+exports:
+  - {name: "gl_FragColor", value: "If"}
+source: /shader/defaultPhong.frag
+name: defaultPhong
+priority: 998
