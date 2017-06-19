@@ -1,0 +1,5 @@
+exports:
+  - {name: "gl_TexCoord[0].xy", value: "gl_MultiTexCoord0.xy"}
+source: /shader/diffuseTexture.vert
+name: diffuseTexture
+priority: 0

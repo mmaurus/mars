@@ -1,0 +1,14 @@
+params:
+  - texCoord
+  - diffuse_base
+uniforms:
+  float:
+    - {name: texScale}
+  sampler2D:
+    - {name: diffuseMap}
+mainVars:
+  vec2:
+    - {name: texCoord, value: "gl_TexCoord[0].xy*texScale"}
+source: /shader/diffuseTexture.frag
+name: diffuseTexture
+priority: 0
