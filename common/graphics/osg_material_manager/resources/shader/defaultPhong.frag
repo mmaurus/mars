@@ -1,8 +1,7 @@
-void defaultPhong(in vec4 ambient_base, in vec4 diffuse_base, in vec4 specular_base, inout vec4 Ia, inout vec4 Id, inout vec4 Is) {
+void defaultPhong(in vec3 n, in vec4 ambient_base, in vec4 diffuse_base, in vec4 specular_base, inout vec4 Ia, inout vec4 Id, inout vec4 Is) {
 	vec3 reflected;
 	float nDotL, rDotE;
 	float spot = 1.0;
-	vec3 n = normalize( gl_FrontFacing ? normal : -normal );
 	for(int i=0; i<numLights; ++i) {
 		if(lightIsSet[i]==1) {
 			nDotL = max(dot(normal, normalize(-lightDir[i])), 0.0);

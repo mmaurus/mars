@@ -1,4 +1,5 @@
 params:
+  - n
   - ambient_base
   - diffuse_base
   - specular_base
@@ -34,6 +35,8 @@ mainVarDecs:
     - {name: "ambient_base", value: "vec4(0.0)", priority: 0}
     - {name: "diffuse_base", value: "vec4(0.0)", priority: 0}
     - {name: "specular_base", value: "vec4(0.0)", priority: 0}
+  vec3:
+    - {name: "n"}
 mainVars:
   vec4:
     - {name: "Ia", value: "vec4(0.0)", priority: 0}

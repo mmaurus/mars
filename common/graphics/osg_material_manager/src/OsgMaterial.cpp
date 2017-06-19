@@ -482,6 +482,7 @@ namespace osg_material_manager {
       map["shader"]["defaultAmbient"] = true;
       map["shader"]["defaultDiffuse"] = true;
       map["shader"]["defaultSpecular"] = true;
+      map["shader"]["defaultNormal"] = true;
     }
 
     if (map["shader"].hasKey("defaultAmbient")) {
@@ -494,6 +495,10 @@ namespace osg_material_manager {
 
     if (map["shader"].hasKey("defaultSpecular")) {
       fragmentDefault->addMainVar((GLSLVariable) {"vec4", "specular_base", "gl_FrontMaterial.specular"});
+    }
+
+    if (map["shader"].hasKey("defaultNormal")) {
+      fragmentDefault->addMainVar((GLSLVariable) {"vec3", "n", "normalize( gl_FrontFacing ? normal : -normal )"});
     }
 
     shaderGenerator.addShaderFunction(vertexDefault, SHADER_TYPE_VERTEX);
