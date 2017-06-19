@@ -20,8 +20,12 @@ uniforms:
     - {name: lightIsSet, arraySize: numLights}
   mat4:
     - {name: osg_ViewMatrixInverse}
+mainVars:
+  vec3:
+    - {name: n, value: "normalize(osg_ViewMatrixInverse * vec4(gl_NormalMatrix * gl_Normal, 0.0)).xyz"}
 exports:
   - {name: "gl_Position", value: "ftransform()"}
+  - {name: "normal", value: "n"}
 source: /shader/defaultPhong.vert
 name: defaultPhong
 priority: 0

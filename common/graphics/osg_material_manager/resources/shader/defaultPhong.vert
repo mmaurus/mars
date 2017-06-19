@@ -15,6 +15,5 @@ void defaultPhong() {
             }
         }
     }
-    normal = normalize(osg_ViewMatrixInverse * vec4(gl_NormalMatrix * gl_Normal, 0.0)).xyz;
     eyeVec = osg_ViewMatrixInverse[3].xyz-vWorldPos.xyz;
 }

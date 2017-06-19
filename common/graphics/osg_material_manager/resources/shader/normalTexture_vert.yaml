@@ -1,0 +1,11 @@
+params:
+  - n
+varyings:
+  mat3:
+    - {name: ttw}
+attributes:
+  vec4:
+    - {name: vertexTangent}
+source: /shader/normalTexture.vert
+name: normalTexture
+priority: 2

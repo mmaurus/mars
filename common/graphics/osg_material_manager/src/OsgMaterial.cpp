@@ -514,6 +514,16 @@ namespace osg_material_manager {
       shaderGenerator.addShaderFunction(fragmentDiffuse, SHADER_TYPE_FRAGMENT);
     }
 
+    if (map["shader"].hasKey("normalTexture")) {
+      ConfigMap shaderMap = ConfigMap::fromYamlFile(resPath+"/shader/normalTexture_vert.yaml");
+      YamlShader *vertexNormal = new YamlShader((string)shaderMap["name"], args, shaderMap, resPath);
+      shaderGenerator.addShaderFunction(vertexNormal, SHADER_TYPE_VERTEX);
+
+      shaderMap = ConfigMap::fromYamlFile(resPath+"/shader/normalTexture_frag.yaml");
+      YamlShader *fragmentNormal = new YamlShader((string)shaderMap["name"], args, shaderMap, resPath);
+      shaderGenerator.addShaderFunction(fragmentNormal, SHADER_TYPE_FRAGMENT);
+    }
+
     if(map.hasKey("shaderSources")) {
       // load shader from text file
       // todo: handle uniforms in a way that we dont need to create the shader
