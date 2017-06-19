@@ -480,10 +480,18 @@ namespace osg_material_manager {
     if(!map.hasKey("shader")) {
       clearShaderEntry = true;
       map["shader"]["defaultAmbient"] = true;
-      map["shader"]["defaultDiffuse"] = true;
+      if (checkTexture("diffuseMap")) {
+        map["shader"]["diffuseTexture"] = true;
+      } else {
+        map["shader"]["defaultDiffuse"] = true;
+      }
       map["shader"]["defaultSpecular"] = true;
       map["shader"]["defaultEmission"] = true;
-      map["shader"]["defaultNormal"] = true;
+      if (checkTexture("normalMap")) {
+        map["shader"]["normalTexture"] = true;
+      } else {
+        map["shader"]["defaultNormal"] = true;
+      }
     }
 
     if (map["shader"].hasKey("defaultAmbient")) {
