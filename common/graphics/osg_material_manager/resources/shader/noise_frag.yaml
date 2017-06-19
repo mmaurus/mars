@@ -1,0 +1,13 @@
+params:
+  - If
+varyings:
+  vec4:
+    - {name: modelVertex}
+uniforms:
+  int:
+    - {name: useNoise}
+  sampler2D:
+    - {name: NoiseMap}
+source: /shader/noise.frag
+name: noise
+priority: 1000

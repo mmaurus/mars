@@ -514,6 +514,9 @@ namespace osg_material_manager {
       fragmentDefault->addMainVar((GLSLVariable) {"vec3", "n", "normalize( gl_FrontFacing ? normal : -normal )"});
     }
 
+    // Temporary statically added for noise and shadow
+    vertexDefault->addVarying((GLSLVarying) {"vec4", "modelVertex"});
+    vertexDefault->addExport((GLSLExport) {"modelVertex", "gl_Vertex"});
     shaderGenerator.addShaderFunction(vertexDefault, SHADER_TYPE_VERTEX);
     shaderGenerator.addShaderFunction(fragmentDefault, SHADER_TYPE_FRAGMENT);
 
@@ -535,6 +538,12 @@ namespace osg_material_manager {
       shaderMap = ConfigMap::fromYamlFile(resPath+"/shader/normalTexture_frag.yaml");
       YamlShader *fragmentNormal = new YamlShader((string)shaderMap["name"], args, shaderMap, resPath);
       shaderGenerator.addShaderFunction(fragmentNormal, SHADER_TYPE_FRAGMENT);
+    }
+
+    if (true) { // At the moment noise is active by default and controlled via uniform useNoise
+      shaderMap = ConfigMap::fromYamlFile(resPath+"/shader/noise_frag.yaml");
+      YamlShader *fragmentNoise = new YamlShader((string)shaderMap["name"], args, shaderMap, resPath);
+      shaderGenerator.addShaderFunction(fragmentNoise, SHADER_TYPE_FRAGMENT);
     }
 
     if(map.hasKey("shaderSources")) {
