@@ -499,6 +499,16 @@ namespace osg_material_manager {
     shaderGenerator.addShaderFunction(vertexDefault, SHADER_TYPE_VERTEX);
     shaderGenerator.addShaderFunction(fragmentDefault, SHADER_TYPE_FRAGMENT);
 
+    if (map["shader"].hasKey("diffuseTexture")) {
+      ConfigMap shaderMap = ConfigMap::fromYamlFile(resPath+"/shader/diffuseTexture_vert.yaml");
+      YamlShader *vertexDiffuse = new YamlShader((string)shaderMap["name"], args, shaderMap, resPath);
+      shaderGenerator.addShaderFunction(vertexDiffuse, SHADER_TYPE_VERTEX);
+
+      shaderMap = ConfigMap::fromYamlFile(resPath+"/shader/diffuseTexture_frag.yaml");
+      YamlShader *fragmentDiffuse = new YamlShader((string)shaderMap["name"], args, shaderMap, resPath);
+      shaderGenerator.addShaderFunction(fragmentDiffuse, SHADER_TYPE_FRAGMENT);
+    }
+
     if(map.hasKey("shaderSources")) {
       // load shader from text file
       // todo: handle uniforms in a way that we dont need to create the shader
