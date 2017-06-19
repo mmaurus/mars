@@ -11,10 +11,6 @@ uniforms:
     - {name: lightPos, arraySize: numLights}
   int:
     - {name: numLights}
-  float[]:
-    - {name: lightConstantAtt, arraySize: numLights}
-    - {name: lightLinearAtt, arraySize: numLights}
-    - {name: lightQuadraticAtt, arraySize: numLights}
   int[]:
     - {name: lightIsDirectional, arraySize: numLights}
     - {name: lightIsSet, arraySize: numLights}

@@ -28,15 +28,14 @@ uniforms:
     - {name: lightIsSet, arraySize: numLights}
     - {name: lightIsDirectional, arraySize: numLights}
   float[]:
+    - {name: lightConstantAtt, arraySize: numLights}
+    - {name: lightLinearAtt, arraySize: numLights}
+    - {name: lightQuadraticAtt, arraySize: numLights}
     - {name: lightCosCutoff, arraySize: numLights}
     - {name: lightSpotExponent, arraySize: numLights}
   float:
     - {name: brightness}
 mainVarDecs:
-  vec4:
-    - {name: "ambient_base", value: "vec4(0.0)", priority: 0}
-    - {name: "diffuse_base", value: "vec4(0.0)", priority: 0}
-    - {name: "specular_base", value: "vec4(0.0)", priority: 0}
   vec3:
     - {name: "n"}
 mainVars:
@@ -45,6 +44,9 @@ mainVars:
     - {name: "Id", value: "vec4(0.0)", priority: 0}
     - {name: "Is", value: "vec4(0.0)", priority: 0}
     - {name: "Ie", value: "vec4(0.0)", priority: 0}
+    - {name: "ambient_base", value: "vec4(0.0)", priority: 0}
+    - {name: "diffuse_base", value: "vec4(0.0)", priority: 0}
+    - {name: "specular_base", value: "vec4(0.0)", priority: 0}
     - {name: "If", value: "brightness*(Ia+Id)+Is+Ie", priority: 999}
 exports:
   - {name: "gl_FragColor", value: "If"}

@@ -5,12 +5,7 @@ void defaultPhong() {
         if (lightIsSet[i] == 1) {
             if (lightIsDirectional[i] == 1) {
                 lightDir[i] = -lightPos[i];
-                atten[i] = lightConstantAtt[i];
             } else {
-                float dist = length(lightDir[i]);
-                atten[i] = 1.0/(lightConstantAtt[i] +
-                           lightLinearAtt[i] * dist +
-                           lightQuadraticAtt[i] * dist * dist);
                 lightDir[i] = vWorldPos.xyz-lightPos[i];
             }
         }
