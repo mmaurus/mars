@@ -482,6 +482,7 @@ namespace osg_material_manager {
       map["shader"]["defaultAmbient"] = true;
       map["shader"]["defaultDiffuse"] = true;
       map["shader"]["defaultSpecular"] = true;
+      map["shader"]["defaultEmission"] = true;
       map["shader"]["defaultNormal"] = true;
     }
 
@@ -495,6 +496,10 @@ namespace osg_material_manager {
 
     if (map["shader"].hasKey("defaultSpecular")) {
       fragmentDefault->addMainVar((GLSLVariable) {"vec4", "specular_base", "gl_FrontMaterial.specular"});
+    }
+
+    if (map["shader"].hasKey("defaultEmission")) {
+      fragmentDefault->addMainVar((GLSLVariable) {"vec4", "Ie", "gl_FrontMaterial.emission"});
     }
 
     if (map["shader"].hasKey("defaultNormal")) {

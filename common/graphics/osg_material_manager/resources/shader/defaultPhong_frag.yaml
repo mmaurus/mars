@@ -30,6 +30,8 @@ uniforms:
   float[]:
     - {name: lightCosCutoff, arraySize: numLights}
     - {name: lightSpotExponent, arraySize: numLights}
+  float:
+    - {name: brightness}
 mainVarDecs:
   vec4:
     - {name: "ambient_base", value: "vec4(0.0)", priority: 0}
@@ -42,7 +44,8 @@ mainVars:
     - {name: "Ia", value: "vec4(0.0)", priority: 0}
     - {name: "Id", value: "vec4(0.0)", priority: 0}
     - {name: "Is", value: "vec4(0.0)", priority: 0}
-    - {name: "If", value: "Ia+Id+Is", priority: 999}
+    - {name: "Ie", value: "vec4(0.0)", priority: 0}
+    - {name: "If", value: "brightness*(Ia+Id)+Is+Ie", priority: 999}
 exports:
   - {name: "gl_FragColor", value: "If"}
 source: /shader/defaultPhong.frag
