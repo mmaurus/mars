@@ -47,11 +47,15 @@ namespace osg_material_manager {
 
     void addShaderFunction(ShaderFunc *func, ShaderType shaderType);
 
-    std::string generateSource(ShaderType shaderType);
+    std::string generateSource(ShaderType shaderType,
+                               std::string mainSource="");
     osg::Program* generate();
+    void loadGraphShader(const std::string &filename);
 
   private:
     std::map<ShaderType, ShaderFunc* > functions;
+
+    std::string generateMainSource(ShaderType shaderType);
   }; // end of class ShaderGenerator
 
 } // end of namespace osg_material_manager

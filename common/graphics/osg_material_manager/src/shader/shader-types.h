@@ -102,7 +102,7 @@ namespace osg_material_manager {
       priority = p_priority;
       s_priority = p_s_priority;
     }
-  };
+  } PrioritizedLine;
 
   std::ostream& operator<<(std::ostream& os, const GLSLAttribute& a);
   std::ostream& operator<<(std::ostream& os, const GLSLExport& a);

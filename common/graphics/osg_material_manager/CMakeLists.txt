@@ -44,6 +44,7 @@ set(SOURCES
 	src/shader/shader-generator.cpp
 	src/shader/shader-function.cpp
 	src/shader/yaml-shader.cpp
+	src/tsort/tsort.c
         )
 
 set(HEADERS
@@ -54,6 +55,7 @@ set(HEADERS
 	src/shader/shader-generator.h
 	src/shader/shader-function.h
 	src/shader/yaml-shader.h
+	src/tsort/tsort.h
 		)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})

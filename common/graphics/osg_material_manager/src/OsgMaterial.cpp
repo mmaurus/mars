@@ -25,10 +25,19 @@
  *  Created by Langosz on 2016
  */
 
+#ifdef WIN32
+ #include <cv.h>
+ #include <highgui.h>
+#else
+ #include <opencv/cv.h>
+ #include <opencv/highgui.h>
+#endif
+
 #include <mars/utils/misc.h>
 #include "OsgMaterial.h"
 #include "OsgMaterialManager.h"
 #include "MaterialNode.h"
+
 #include <osgDB/WriteFile>
 
 #include "shader/shader-generator.h"
@@ -38,13 +47,6 @@
 #include <osg/TexMat>
 #include <osg/CullFace>
 
-#ifdef WIN32
- #include <cv.h>
- #include <highgui.h>
-#else
- #include <opencv/cv.h>
- #include <opencv/highgui.h>
-#endif
 
 #include <cmath>
 
@@ -639,6 +641,13 @@ namespace osg_material_manager {
       }
     }
 
+    if(map.hasKey("graphShader")) {
+      std::string file = map["graphShader"];
+      if(!loadPath.empty() && file[0] != '/') {
+        file = loadPath + file;
+      }
+      shaderGenerator.loadGraphShader(file);
+    }
     if(map.hasKey("shaderSources")) {
       // load shader from text file
       // todo: handle uniforms in a way that we dont need to create the shader

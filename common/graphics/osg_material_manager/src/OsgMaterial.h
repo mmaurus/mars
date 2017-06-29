@@ -143,7 +143,8 @@ namespace osg_material_manager {
     osg::Vec4 getColor(std::string key);
     void setColor(std::string color, std::string key, std::string value);
     osg::Texture2D* loadTerrainTexture(std::string filename);
-}; // end of class OsgMaterial
+
+  }; // end of class OsgMaterial
 
 } // end of namespace osg_material_manager
 
