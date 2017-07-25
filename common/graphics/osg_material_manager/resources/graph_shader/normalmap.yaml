@@ -1,6 +1,6 @@
 params:
   in:
-    nt: 0
-    n: 1
+    nt: {index: 0, type: vec4}
+    n: {index: 1, type: vec3}
   out:
-    n: 0
+    n: {index: 0, type: vec3}

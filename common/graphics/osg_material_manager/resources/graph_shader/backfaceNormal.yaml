@@ -1,5 +1,5 @@
 params:
   in:
-    n: 0
+    n: {index: 0, type: vec3}
   out:
-    n: 0
+    n: {index: 0, type: vec3}

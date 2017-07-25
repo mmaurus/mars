@@ -1,6 +1,6 @@
 params:
   in:
-    pcol: 0
-    n: 1
+    pcol: {index: 0, type: vec4}
+    n: {index: 1, type: vec3}
   out:
-    col: 0
+    col: {index: 0, type: vec4}

@@ -197,6 +197,8 @@ namespace osg_material_manager {
     std::map<unsigned long, ConfigMap>::iterator nodeIt;
     std::vector<ConfigMap*>::iterator sNodeIt;
     std::vector<std::string> add; // lines to add after function call generation
+    std::vector<GLSLAttribute> vars; //definitions of main variables
+    std::vector<std::string> function_calls;
     ConfigMap model = ConfigMap::fromYamlFile(filename);
     ConfigMap graph = ConfigMap::fromYamlString(model["versions"][0]["components"].getString());
     ConfigMap filterMap;
@@ -240,7 +242,7 @@ namespace osg_material_manager {
       }
     }
 
-    code << "void main() {" << endl;
+    //code << "void main() {" << endl;
 
     // create edge variables
     for(et=graph["edges"].begin(); et!=graph["edges"].end(); ++et) {
@@ -268,57 +270,79 @@ namespace osg_material_manager {
         }
       }
       if(print) {
-        code << "  " << dataType << " " << name << endl;
+        vars.push_back((GLSLAttribute) {dataType, name});
+        //code << "  " << dataType << " " << name << endl;
       }
     }
-    code << endl;
+    //code << endl;
 
     // create function calls
     for(sNodeIt=sortedNodes.begin(); sNodeIt!=sortedNodes.end(); ++sNodeIt) {
       ConfigMap &nodeMap = **sNodeIt;
       std::string function = nodeMap["model"]["name"];
+      std::stringstream call;
+      call.clear();
       if(!filterMap.hasKey(function)) {
         // todo: make shader-type sensitive!
         ConfigMap functionInfo = ConfigMap::fromYamlFile(resPath+"/graph_shader/"+function+".yaml");
-        code << "  " << function << "(";
-        std::priority_queue<std::pair<int, std::string> > incoming, outgoing;
+        call << "  " << function << "(";
+        std::priority_queue<PrioritizedLine> incoming, outgoing;
         bool first = true;
         // search for incoming and outgoing edges
-        // todo: handle index of function value
         /* todo: add default values
-         *       incoming.resize(numInputs, default);
-         *       outgoing.resize(numOutputs);
-         *       create variables for not connected outputs
          */
 
         for(et=graph["edges"].begin(); et!=graph["edges"].end(); ++et) {
-          std::string paramName = (*et)["name"];
+          std::string paramName;
+          std::string varName = (*et)["name"];
           if((*et)["to"]["name"].getString() == nodeMap["name"].getString()) {
-            incoming.push(std::make_pair((int)functionInfo["params"]["in"][paramName], paramName));
+            paramName = (*et)["to"]["interface"].getString();
+            incoming.push((PrioritizedLine) {varName, (int)functionInfo["params"]["in"][paramName]["index"], 0});
           }
           else if((*et)["from"]["name"].getString() == nodeMap["name"].getString()) {
-            outgoing.push(std::make_pair((int)functionInfo["params"]["out"][paramName], paramName));
+            paramName = (*et)["from"]["interface"].getString();
+            outgoing.push((PrioritizedLine) {varName, (int)functionInfo["params"]["out"][paramName]["index"], 0});
+            functionInfo["params"]["out"][paramName]["connected"] = 1;
+          }
+        }
+
+        ConfigMap::iterator m_it = functionInfo["params"]["out"].beginMap();
+        for(; m_it!=functionInfo["params"]["out"].endMap();m_it++) {
+          if (!m_it->second.hasKey("connected")) {
+            std::string varName = "unused_" + m_it->first + "_" + nodeMap["name"].getString();
+            outgoing.push((PrioritizedLine) {varName, (int)m_it->second["index"], 0});
+            vars.push_back((GLSLAttribute) {m_it->second["type"], varName});
           }
         }
         while (!incoming.empty()) {
           if(!first) {
-            code << ", ";
+            call << ", ";
           }
           first = false;
-          code << incoming.top().second;
+          call << incoming.top().line;
           incoming.pop();
         }
         while (!outgoing.empty()) {
           if(!first) {
-            code << ", ";
+            call << ", ";
           }
           first = false;
-          code << outgoing.top().second;
+          call << outgoing.top().line;
           outgoing.pop();
         }
         // search for outgoing edges
-        code << ");" << endl;
+        call << ");" << endl;
       }
+      function_calls.push_back(call.str());
+    }
+    // Compose code
+    code << "void main() {" << endl;
+    for(size_t i=0; i<vars.size(); ++i) {
+      code << "  " << vars[i].type << " " << vars[i].name << endl;
+    }
+    code << endl;
+    for(size_t i=0; i<function_calls.size(); ++i) {
+      code << function_calls[i] << endl;
     }
     for(size_t i=0; i<add.size(); ++i) {
       code << add[i];
