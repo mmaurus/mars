@@ -1,0 +1,6 @@
+params:
+  in:
+    pcol: 0
+    n: 1
+  out:
+    col: 0

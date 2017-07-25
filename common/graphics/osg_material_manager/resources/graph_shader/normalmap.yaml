@@ -1,0 +1,6 @@
+params:
+  in:
+    nt: 0
+    n: 1
+  out:
+    n: 0
