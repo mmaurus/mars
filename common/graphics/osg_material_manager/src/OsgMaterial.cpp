@@ -646,7 +646,7 @@ namespace osg_material_manager {
       if(!loadPath.empty() && file[0] != '/') {
         file = loadPath + file;
       }
-      shaderGenerator.loadGraphShader(file);
+      shaderGenerator.loadGraphShader(file, resPath);
     }
     if(map.hasKey("shaderSources")) {
       // load shader from text file

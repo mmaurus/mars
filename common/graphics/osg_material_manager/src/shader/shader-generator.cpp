@@ -189,14 +189,14 @@ namespace osg_material_manager {
     return prog;
   }
 
-  void ShaderGenerator::loadGraphShader(const std::string &filename) {
+  void ShaderGenerator::loadGraphShader(const std::string &filename, const std::string &resPath) {
     stringstream code;
     std::map<unsigned long, ConfigMap> nodeMap;
     std::vector<ConfigMap*> sortedNodes;
     std::map<std::string, unsigned long> nodeNameId;
     std::map<unsigned long, ConfigMap>::iterator nodeIt;
     std::vector<ConfigMap*>::iterator sNodeIt;
-    std::vector<std::string> add;
+    std::vector<std::string> add; // lines to add after function call generation
     ConfigMap model = ConfigMap::fromYamlFile(filename);
     ConfigMap graph = ConfigMap::fromYamlString(model["versions"][0]["components"].getString());
     ConfigMap filterMap;
@@ -278,9 +278,10 @@ namespace osg_material_manager {
       ConfigMap &nodeMap = **sNodeIt;
       std::string function = nodeMap["model"]["name"];
       if(!filterMap.hasKey(function)) {
-        // todo: load parameter information of function
+        // todo: make shader-type sensitive!
+        ConfigMap functionInfo = ConfigMap::fromYamlFile(resPath+"/graph_shader/"+function+".yaml");
         code << "  " << function << "(";
-        std::vector<string> incoming, outgoing;
+        std::priority_queue<std::pair<int, std::string> > incoming, outgoing;
         bool first = true;
         // search for incoming and outgoing edges
         // todo: handle index of function value
@@ -291,26 +292,29 @@ namespace osg_material_manager {
          */
 
         for(et=graph["edges"].begin(); et!=graph["edges"].end(); ++et) {
+          std::string paramName = (*et)["name"];
           if((*et)["to"]["name"].getString() == nodeMap["name"].getString()) {
-            incoming.push_back((*et)["name"]);
+            incoming.push(std::make_pair((int)functionInfo["params"]["in"][paramName], paramName));
           }
           else if((*et)["from"]["name"].getString() == nodeMap["name"].getString()) {
-            outgoing.push_back((*et)["name"]);
+            outgoing.push(std::make_pair((int)functionInfo["params"]["out"][paramName], paramName));
           }
         }
-        for(size_t i=0; i<incoming.size(); ++i) {
+        while (!incoming.empty()) {
           if(!first) {
             code << ", ";
           }
           first = false;
-          code << incoming[i];
+          code << incoming.top().second;
+          incoming.pop();
         }
-        for(size_t i=0; i<outgoing.size(); ++i) {
+        while (!outgoing.empty()) {
           if(!first) {
             code << ", ";
           }
           first = false;
-          code << outgoing[i];
+          code << outgoing.top().second;
+          outgoing.pop();
         }
         // search for outgoing edges
         code << ");" << endl;
