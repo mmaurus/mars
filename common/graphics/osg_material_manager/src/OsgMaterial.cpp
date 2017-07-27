@@ -642,11 +642,16 @@ namespace osg_material_manager {
     }
 
     if(map.hasKey("graphShader")) {
-      std::string file = map["graphShader"];
+      std::string file = map["graphShader"]["fragment"].getString();
       if(!loadPath.empty() && file[0] != '/') {
         file = loadPath + file;
       }
-      shaderGenerator.loadGraphShader(file, resPath);
+      shaderGenerator.loadGraphShader(file, resPath, SHADER_TYPE_FRAGMENT);
+      file = map["graphShader"]["vertex"].getString();
+      if(!loadPath.empty() && file[0] != '/') {
+        file = loadPath + file;
+      }
+      shaderGenerator.loadGraphShader(file, resPath, SHADER_TYPE_VERTEX);
     }
     if(map.hasKey("shaderSources")) {
       // load shader from text file

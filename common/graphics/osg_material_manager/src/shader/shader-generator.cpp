@@ -109,6 +109,9 @@ namespace osg_material_manager {
   }
 
   string ShaderGenerator::generateMainSource(ShaderType shaderType) {
+    if (graphSources.count(shaderType) > 0) {
+      return graphSources[shaderType];
+    }
     map<ShaderType,ShaderFunc*>::iterator it = functions.find(shaderType);
     if(it == functions.end()) {
       return "";
@@ -189,7 +192,7 @@ namespace osg_material_manager {
     return prog;
   }
 
-  void ShaderGenerator::loadGraphShader(const std::string &filename, const std::string &resPath) {
+  void ShaderGenerator::loadGraphShader(const std::string &filename, const std::string &resPath, ShaderType shaderType) {
     stringstream code;
     std::map<unsigned long, ConfigMap> nodeMap;
     std::vector<ConfigMap*> sortedNodes;
@@ -276,21 +279,20 @@ namespace osg_material_manager {
           if((*it)["model"]["name"].getString() == "outColor") {
             std::string t = "  gl_FragColor = " + (*et)["name"].getString() + ";\n";
             add.push_back(t);
+          } else if (filterMap.hasKey((*it)["model"]["name"].getString())) {
+            (*et)["name"] = (*it)["name"].getString();
           }
         }
       }
       if(print) {
         vars.push_back((GLSLAttribute) {dataType, name});
-        //code << "  " << dataType << " " << name << endl;
       }
     }
-    //code << endl;
 
     // create function calls
     for(sNodeIt=sortedNodes.begin(); sNodeIt!=sortedNodes.end(); ++sNodeIt) {
       ConfigMap &nodeMap = **sNodeIt;
-      std::string
-              function = nodeMap["model"]["name"];
+      std::string function = nodeMap["model"]["name"];
       std::stringstream call;
       call.clear();
       if(!filterMap.hasKey(function)) {
@@ -375,6 +377,7 @@ namespace osg_material_manager {
       code << add[i];
     }
     code << "}" << endl;
+    graphSources[shaderType] = code.str();
     fprintf(stderr, "\n%s\n", code.str().c_str());
   }
 
