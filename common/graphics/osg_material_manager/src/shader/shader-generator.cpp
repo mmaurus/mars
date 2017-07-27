@@ -201,7 +201,7 @@ namespace osg_material_manager {
     std::vector<GLSLVariable> defaultInputs;
     std::vector<std::string> function_calls;
     ConfigMap model = ConfigMap::fromYamlFile(filename);
-    ConfigMap graph = ConfigMap::fromYamlString(model["versions"][0]["components"].getString());
+    ConfigItem graph = model["versions"][0]["components"];
     ConfigMap filterMap;
     filterMap["int"] = 1;
     filterMap["float"] = 1;
@@ -210,6 +210,7 @@ namespace osg_material_manager {
     filterMap["vec4"] = 1;
     filterMap["sampler2D"] = 1;
     filterMap["outColor"] = 1;
+
 
     ConfigVector::iterator it, et;
     // create node ids for tsort
@@ -247,7 +248,8 @@ namespace osg_material_manager {
 
     // create edge variables
     for(et=graph["edges"].begin(); et!=graph["edges"].end(); ++et) {
-      std::string dataType = (*et)["data"]["dataType"];
+      ConfigMap data = ConfigMap::fromYamlString((*et)["data"].getString());
+      std::string dataType = data["dataType"];
       std::string name = (*et)["name"];
       if(isdigit(name[0])) {
         name = "e" + name;
