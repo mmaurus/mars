@@ -202,6 +202,7 @@ namespace osg_material_manager {
     std::vector<std::string> function_calls;
     ConfigMap model = ConfigMap::fromYamlFile(filename);
     ConfigItem graph = model["versions"][0]["components"];
+    ConfigMap nodeConfig;
     ConfigMap filterMap;
     filterMap["int"] = 1;
     filterMap["float"] = 1;
@@ -213,6 +214,12 @@ namespace osg_material_manager {
 
 
     ConfigVector::iterator it, et;
+
+    // Making default values of nodes easily accessible
+    for(it=graph["configuration"]["nodes"].begin(); it!=graph["configuration"]["nodes"].end(); ++it) {
+      ConfigMap data = ConfigMap::fromYamlString((*it)["data"].getString());
+      nodeConfig[(*it)["name"]] = data["data"];
+    }
     // create node ids for tsort
     unsigned long id = 1;
     for(it=graph["nodes"].begin(); it!=graph["nodes"].end(); ++it) {
@@ -324,7 +331,7 @@ namespace osg_material_manager {
         for(; m_it!=functionInfo["params"]["in"].endMap();m_it++) {
           if (!m_it->second.hasKey("connected")) {
             std::string varName = "default_" + m_it->first + "_" + nodeMap["name"].getString();
-            std::string value = "TEMP";
+            std::string value = nodeConfig[nodeMap["name"]]["inputs"][m_it->first];
             incoming.push((PrioritizedLine) {varName, (int)m_it->second["index"], 0});
             defaultInputs.push_back((GLSLVariable) {m_it->second["type"], varName, value});
           }
