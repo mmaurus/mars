@@ -198,6 +198,7 @@ namespace osg_material_manager {
     std::vector<ConfigMap*>::iterator sNodeIt;
     std::vector<std::string> add; // lines to add after function call generation
     std::vector<GLSLAttribute> vars; //definitions of main variables
+    std::vector<GLSLVariable> defaultInputs;
     std::vector<std::string> function_calls;
     ConfigMap model = ConfigMap::fromYamlFile(filename);
     ConfigMap graph = ConfigMap::fromYamlString(model["versions"][0]["components"].getString());
@@ -279,7 +280,8 @@ namespace osg_material_manager {
     // create function calls
     for(sNodeIt=sortedNodes.begin(); sNodeIt!=sortedNodes.end(); ++sNodeIt) {
       ConfigMap &nodeMap = **sNodeIt;
-      std::string function = nodeMap["model"]["name"];
+      std::string
+              function = nodeMap["model"]["name"];
       std::stringstream call;
       call.clear();
       if(!filterMap.hasKey(function)) {
@@ -298,6 +300,7 @@ namespace osg_material_manager {
           if((*et)["to"]["name"].getString() == nodeMap["name"].getString()) {
             paramName = (*et)["to"]["interface"].getString();
             incoming.push((PrioritizedLine) {varName, (int)functionInfo["params"]["in"][paramName]["index"], 0});
+            functionInfo["params"]["in"][paramName]["connected"] = 1;
           }
           else if((*et)["from"]["name"].getString() == nodeMap["name"].getString()) {
             paramName = (*et)["from"]["interface"].getString();
@@ -314,6 +317,17 @@ namespace osg_material_manager {
             vars.push_back((GLSLAttribute) {m_it->second["type"], varName});
           }
         }
+
+        m_it = functionInfo["params"]["in"].beginMap();
+        for(; m_it!=functionInfo["params"]["in"].endMap();m_it++) {
+          if (!m_it->second.hasKey("connected")) {
+            std::string varName = "default_" + m_it->first + "_" + nodeMap["name"].getString();
+            std::string value = "TEMP";
+            incoming.push((PrioritizedLine) {varName, (int)m_it->second["index"], 0});
+            defaultInputs.push_back((GLSLVariable) {m_it->second["type"], varName, value});
+          }
+        }
+
         while (!incoming.empty()) {
           if(!first) {
             call << ", ";
@@ -338,7 +352,11 @@ namespace osg_material_manager {
     // Compose code
     code << "void main() {" << endl;
     for(size_t i=0; i<vars.size(); ++i) {
-      code << "  " << vars[i].type << " " << vars[i].name << endl;
+      code << "  " << vars[i] << ";" << endl;
+    }
+    code << endl;
+    for(size_t i=0; i<defaultInputs.size(); ++i) {
+      code << "  " << "const " << defaultInputs[i] << ";" << endl;
     }
     code << endl;
     for(size_t i=0; i<function_calls.size(); ++i) {
