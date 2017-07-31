@@ -206,6 +206,7 @@ namespace osg_material_manager {
     ConfigMap model = ConfigMap::fromYamlFile(filename);
     ConfigItem graph = model["versions"][0]["components"];
     ConfigMap nodeConfig;
+    ConfigMap iOuts; //Map containing already created edge variables for output interfaces
     ConfigMap filterMap;
     filterMap["int"] = 1;
     filterMap["float"] = 1;
@@ -254,25 +255,27 @@ namespace osg_material_manager {
       }
     }
 
-    //code << "void main() {" << endl;
-
     // create edge variables
     for(et=graph["edges"].begin(); et!=graph["edges"].end(); ++et) {
       ConfigMap data = ConfigMap::fromYamlString((*et)["data"].getString());
+      std::string from = (*et)["from"]["name"];
+      std::string from_I = (*et)["from"]["interface"];
+      std::string to = (*et)["to"]["name"];
       std::string dataType = data["dataType"];
       std::string name = (*et)["name"];
       if(isdigit(name[0])) {
         name = "e" + name;
         (*et)["name"] = name;
       }
-      std::string from = (*et)["from"]["name"];
-      std::string to = (*et)["to"]["name"];
       bool print = true;
       for(it=graph["nodes"].begin(); it!=graph["nodes"].end(); ++it) {
         if((*it)["name"].getString() == from) {
           if(filterMap.hasKey((*it)["model"]["name"].getString())) {
             (*et)["name"] = (*it)["name"];
             print = false;
+          } else if (iOuts.hasKey(from + from_I)) {
+            print = false;
+            (*et)["name"] = iOuts[from+from_I];
           }
         }
         if((*it)["name"].getString() == to) {
@@ -286,6 +289,7 @@ namespace osg_material_manager {
       }
       if(print) {
         vars.push_back((GLSLAttribute) {dataType, name});
+        iOuts[from+from_I] = name;
       }
     }
 
@@ -301,10 +305,6 @@ namespace osg_material_manager {
         call << "  " << function << "(";
         std::priority_queue<PrioritizedLine> incoming, outgoing;
         bool first = true;
-        // search for incoming and outgoing edges
-        /* todo: add default values
-         */
-
         for(et=graph["edges"].begin(); et!=graph["edges"].end(); ++et) {
           std::string paramName;
           std::string varName = (*et)["name"];
