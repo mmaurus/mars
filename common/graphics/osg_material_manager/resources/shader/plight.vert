@@ -2,6 +2,20 @@ float rnd(float x, float y) {
   return fract(sin(dot(vec2(x,y) ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
+void vertexOut(in vec4 viewPos, in vec4 modelPos) {
+  gl_Position = gl_ModelViewProjectionMatrix * modelPos;
+  gl_ClipVertex = viewPos;
+  gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+}
+
+void viewPos(in vec4 modelPos, out vec4 viewPos) {
+  viewPos = gl_ModelViewMatrix * vModelPos;
+}
+
+void worldPos(in vec4 viewPos, out vec4 worldPos) {
+  worldPos = osg_ViewMatrixInverse * viewPos;
+}
+
 void pixellight(vec4 v, vec4 scol) {
   // save the vertex to eye vector in world space
   eyeVec = osg_ViewMatrixInverse[3].xyz-v.xyz;

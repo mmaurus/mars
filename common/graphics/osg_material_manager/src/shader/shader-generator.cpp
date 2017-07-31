@@ -275,7 +275,7 @@ namespace osg_material_manager {
             print = false;
           } else if (iOuts.hasKey(from + from_I)) {
             print = false;
-            (*et)["name"] = iOuts[from+from_I];
+            (*et)["name"] = iOuts[from+from_I]["name"];
           }
         }
         if((*it)["name"].getString() == to) {
@@ -283,13 +283,16 @@ namespace osg_material_manager {
             std::string t = "  gl_FragColor = " + (*et)["name"].getString() + ";\n";
             add.push_back(t);
           } else if (filterMap.hasKey((*it)["model"]["name"].getString())) {
-            (*et)["name"] = (*it)["name"].getString();
+            std::string t = "  " + to + " = " + (*et)["name"].getString() + ";\n";
+            add.push_back(t);
+            //(*et)["name"] = (*it)["name"].getString();
           }
         }
       }
       if(print) {
         vars.push_back((GLSLAttribute) {dataType, name});
-        iOuts[from+from_I] = name;
+        iOuts[from+from_I]["name"] = name;
+        iOuts[from+from_I]["connected"] = 0;
       }
     }
 
@@ -315,8 +318,12 @@ namespace osg_material_manager {
           }
           else if((*et)["from"]["name"].getString() == nodeMap["name"].getString()) {
             paramName = (*et)["from"]["interface"].getString();
-            outgoing.push((PrioritizedLine) {varName, (int)functionInfo["params"]["out"][paramName]["index"], 0});
-            functionInfo["params"]["out"][paramName]["connected"] = 1;
+            std::string iOuts_key = (*et)["from"]["name"].getString()+paramName;
+            if (iOuts.hasKey(iOuts_key) && (int)iOuts[iOuts_key]["connected"] == 0) {
+              outgoing.push((PrioritizedLine) {varName, (int)functionInfo["params"]["out"][paramName]["index"], 0});
+              functionInfo["params"]["out"][paramName]["connected"] = 1;
+              iOuts[iOuts_key]["connected"] = 1;
+            }
           }
         }
 
