@@ -228,12 +228,20 @@ namespace mars {
           // init osg
           //initialize graphicsFactory
           if(mainGui) {
+#ifdef __APPLE__
             marsGraphics->initializeOSG(NULL);
-            void *widget = marsGraphics->getQTWidget(1);
-            if (widget && mainGui) {
-              mainGui->mainWindow_p()->setCentralWidget((QWidget*)widget);
-            }
-            if(widget) ((QWidget*)widget)->show();
+            QWidget *widget = (QWidget*)marsGraphics->getQTWidget(1);
+            mainGui->mainWindow_p()->setCentralWidget(widget);
+            widget->show();
+#else
+            marsGraphics->initializeOSG(NULL, false);
+            QWidget *parent = new QWidget();
+            parent->setWindowTitle("main view");
+            unsigned long id = marsGraphics->new3DWindow(parent);
+            parent->resize(QSize(720, 405));
+            parent->setMinimumSize(QSize(50, 50));
+            mainGui->mainWindow_p()->setCentralWidget(parent);
+#endif
           }
           else {
             marsGraphics->initializeOSG(NULL, false);
@@ -252,11 +260,13 @@ namespace mars {
           fprintf(stderr, "Loading default additional libraries...\n");
           // loading errors will be silent for the following optional libraries
           if(!noGUI) {
+            libManager->loadLibrary("log_console", NULL, true);
             libManager->loadLibrary("connexion_plugin", NULL, true);
             libManager->loadLibrary("data_broker_gui", NULL, true);
             libManager->loadLibrary("cfg_manager_gui", NULL, true);
             libManager->loadLibrary("lib_manager_gui", NULL, true);
             libManager->loadLibrary("SkyDomePlugin", NULL, true);
+            libManager->loadLibrary("PythonMars", NULL, true);
           }
         }
       }

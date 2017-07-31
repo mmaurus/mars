@@ -64,6 +64,7 @@ namespace mars {
       interfaces::ControlCenter *control;
       bool filled, selectAllowed;
       int editCategory;
+      int currentWindowID;
       std::vector<interfaces::core_objects_exchange> simNodes, simJoints;
       std::vector<interfaces::core_objects_exchange> simMotors, simSensors;
       std::vector<interfaces::core_objects_exchange> simControllers;
@@ -84,6 +85,7 @@ namespace mars {
       void reset(void);
       void createTree();
       void addCoreExchange(const std::vector<interfaces::core_objects_exchange> &objects, std::string category);
+      void updateNodeMap(configmaps::ConfigMap &map);
 
     signals:
       void closeSignal(void* widget);
