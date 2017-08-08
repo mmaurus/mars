@@ -2,7 +2,15 @@ float rnd(float x, float y) {
   return fract(sin(dot(vec2(x,y) ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-void pixellight(vec4 base, vec3 n, out vec4 outcol) {
+void fragOut(in vec4 col) {
+  gl_FragColor = col;
+}
+
+void backfaceNormal(in vec3 n_in, out vec3 n_out) {
+  n_out = normalize( gl_FrontFacing ? n_in : -n_in );
+}
+
+void pixellight_frag(vec4 base, vec3 n, out vec4 outcol) {
   vec4 ambient = vec4(0.0);
   vec4 diffuse_ = vec4(0.0);
   vec4 specular_ = vec4(0.0);

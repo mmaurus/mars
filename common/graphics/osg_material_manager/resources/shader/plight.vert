@@ -6,17 +6,20 @@ void vertexOut(in vec4 viewPos, in vec4 modelPos) {
   gl_Position = gl_ModelViewProjectionMatrix * modelPos;
   gl_ClipVertex = viewPos;
   gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+  normalVarying = (normalize(osg_ViewMatrixInverse * vec4(gl_NormalMatrix * gl_Normal, 0.0))).xyz;
+  modelVertex = modelPos;
 }
 
 void viewPos(in vec4 modelPos, out vec4 viewPos) {
-  viewPos = gl_ModelViewMatrix * vModelPos;
+  viewPos = gl_ModelViewMatrix * modelPos;
 }
 
 void worldPos(in vec4 viewPos, out vec4 worldPos) {
   worldPos = osg_ViewMatrixInverse * viewPos;
+  positionVarying = worldPos;
 }
 
-void pixellight(vec4 v, vec4 scol) {
+void pixellight_vert(vec4 v, vec4 scol) {
   // save the vertex to eye vector in world space
   eyeVec = osg_ViewMatrixInverse[3].xyz-v.xyz;
   for(int i=0; i<numLights; ++i) {
