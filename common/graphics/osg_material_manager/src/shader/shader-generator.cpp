@@ -374,7 +374,7 @@ namespace osg_material_manager {
     }
     code << endl;
     for(size_t i=0; i<defaultInputs.size(); ++i) {
-      code << "  " << "const " << defaultInputs[i] << ";" << endl;
+      code << "  " << defaultInputs[i] << ";" << endl;
     }
     code << endl;
     for(size_t i=0; i<function_calls.size(); ++i) {
