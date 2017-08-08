@@ -43,5 +43,5 @@ exports:
   - name: modelVertex
     value: vModelPos
 source: /shader/plight.vert
-name: pixellight
+name: pixellight_vert
 priority: 3
