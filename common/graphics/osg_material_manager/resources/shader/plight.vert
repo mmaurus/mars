@@ -2,11 +2,15 @@ float rnd(float x, float y) {
   return fract(sin(dot(vec2(x,y) ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-void vertexOut(in vec4 viewPos, in vec4 modelPos) {
+void vertexInfo(out vec3 normal) {
+  normal = normalize(osg_ViewMatrixInverse * vec4(gl_NormalMatrix * gl_Normal, 0.0)).xyz;
+}
+
+void vertexOut(in vec4 viewPos, in vec4 modelPos, in vec3 normalV) {
   gl_Position = gl_ModelViewProjectionMatrix * modelPos;
   gl_ClipVertex = viewPos;
   gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
-  normalVarying = (normalize(osg_ViewMatrixInverse * vec4(gl_NormalMatrix * gl_Normal, 0.0))).xyz;
+  normalVarying = normalV;
   modelVertex = modelPos;
 }
 
