@@ -262,11 +262,8 @@ namespace osg_material_manager {
       std::string from_I = (*et)["from"]["interface"];
       std::string to = (*et)["to"]["name"];
       std::string dataType = data["dataType"];
-      std::string name = (*et)["name"];
-      if(isdigit(name[0])) {
-        name = "e" + name;
-        (*et)["name"] = name;
-      }
+      std::string name = (*et)["from"]["name"].getString() + "_to_" + (*et)["to"]["name"].getString();
+      (*et)["name"] = name;
       bool print = true;
       for(it=graph["nodes"].begin(); it!=graph["nodes"].end(); ++it) {
         if((*it)["name"].getString() == from) {
