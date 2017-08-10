@@ -262,7 +262,8 @@ namespace osg_material_manager {
       std::string from_I = (*et)["from"]["interface"];
       std::string to = (*et)["to"]["name"];
       std::string dataType = data["dataType"];
-      std::string name = (*et)["from"]["name"].getString() + "_to_" + (*et)["to"]["name"].getString();
+      // Necessary to non unique edge names in DRockGui
+      std::string name = (*et)["from"]["name"].getString() + "_at_" + (*et)["from"]["interface"].getString();
       (*et)["name"] = name;
       bool print = true;
       for(it=graph["nodes"].begin(); it!=graph["nodes"].end(); ++it) {
