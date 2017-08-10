@@ -6,6 +6,10 @@ void fragOut(in vec4 col) {
   gl_FragColor = col;
 }
 
+void sample2D(in vec2 texCoord, in sampler2D texture, out vec4 color) {
+  color = texture2D(texture, texCoord);
+}
+
 void backfaceNormal(in vec3 n_in, out vec3 n_out) {
   n_out = normalize( gl_FrontFacing ? n_in : -n_in );
 }
