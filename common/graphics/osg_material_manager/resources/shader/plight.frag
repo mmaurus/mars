@@ -2,6 +2,10 @@ float rnd(float x, float y) {
   return fract(sin(dot(vec2(x,y) ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
+void fragInfo(out vec2 texCoord) {
+  texCoord = gl_TexCoord[0].xy*texScale;
+}
+
 void fragOut(in vec4 col) {
   gl_FragColor = col;
 }
